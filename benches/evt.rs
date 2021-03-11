@@ -18,7 +18,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             .map(|_| message_store::controls::new_example())
             .collect();
 
-        b.iter(|| store.put_many(data.iter().collect(), &stream, None))
+        b.iter(|| store.put(data.iter().collect::<Vec<_>>(), &stream, None))
     });
 
     c.bench_function("get 1", |b| {
