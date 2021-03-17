@@ -5,6 +5,12 @@ use core::{fmt, ops};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
+use core::convert::TryFrom;
+
+pub trait Follows<To: Default> {
+    fn follow(&self) -> To;
+}
+
 pub struct Message<T: Serialize + DeserializeOwned + Default>(
     pub T,
     pub Option<Uuid>,
@@ -15,14 +21,18 @@ impl<T> Message<T>
 where
     T: Serialize + DeserializeOwned + Default,
 {
-    pub fn follow<M>(message: &Message<M>) -> Self
+    pub fn follow<M: Follows<T>>(message: &Message<M>) -> Self
     where
         M: Serialize + DeserializeOwned + Default,
     {
         let metadata = Metadata::follow(message.metadata());
-        let from: &M = message;
-        let from_value = serde_json::to_value(from).unwrap();
-        let data: T = serde_json::from_value(from_value).unwrap();
+        // If T has more attributes that aren't defaulted then M this will fail via panic
+        //   also requires #[serde(default)] or similar while not being obvious
+        //   furthermore if there are attributes that should copy but are different keys this wouldn't work
+        // let from: &M = message;
+        // let from_value = serde_json::to_value(from).unwrap();
+        // let data: T = serde_json::from_value(from_value).unwrap();
+        let data = message.follow();
 
         Message(data, None, metadata)
     }
@@ -61,8 +71,8 @@ where
             stream_name: metadata.stream_name.clone(),
             position: metadata.position,
             global_position: metadata.global_position,
-            data: serde_json::to_value(&data).unwrap(),
-            metadata: serde_json::to_value(&metadata).unwrap(),
+            data: serde_json::to_value(&data).expect("data to be serializable"),
+            metadata: serde_json::to_value(&metadata).expect("metadata to be serializable"),
             time: metadata.time,
         }
     }
@@ -78,8 +88,8 @@ where
             stream_name: metadata.stream_name.clone(),
             position: metadata.position,
             global_position: metadata.global_position,
-            data: serde_json::to_value(&data).unwrap(),
-            metadata: serde_json::to_value(&metadata).unwrap(),
+            data: serde_json::to_value(&data).expect("data to be serializable"),
+            metadata: serde_json::to_value(&metadata).expect("metadata to be serializable"),
             time: metadata.time,
         }
     }
@@ -87,19 +97,24 @@ where
     pub fn metadata(&self) -> &Metadata {
         &self.2
     }
+
+    pub fn add_trace(&mut self, key: String, value: String) {
+        self.2.add_trace(key, value);
+    }
 }
 
-impl<T> From<MessageData> for Message<T>
+impl<T> TryFrom<MessageData> for Message<T>
 where
     T: Serialize + DeserializeOwned + Default,
 {
-    fn from(value: MessageData) -> Self {
+    type Error = serde_json::Error;
+    fn try_from(value: MessageData) -> Result<Self, Self::Error> {
         let id = value.id;
         let mut metadata = Metadata::from(&value);
-        metadata.message_type = Some(String::from(type_name::<T>()));
-        let val: T = serde_json::from_value(value.data).unwrap();
+        metadata.message_type = Some(value.message_type);
+        let val: T = serde_json::from_value(value.data)?;
 
-        Message(val, id, metadata)
+        Ok(Message(val, id, metadata))
     }
 }
 

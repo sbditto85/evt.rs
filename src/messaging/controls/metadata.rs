@@ -1,5 +1,8 @@
+use crate::identity;
 use crate::messaging::Metadata;
 use crate::{clock, message_store, DateTime, Utc};
+
+use std::collections::HashMap;
 
 pub fn example() -> Metadata {
     Metadata {
@@ -14,6 +17,7 @@ pub fn example() -> Metadata {
         reply_stream_name: Some(reply_stream_name()),
         time: Some(time()),
         schema_version: Some(schema_version()),
+        trace_info: HashMap::new(),
     }
 }
 
@@ -65,4 +69,20 @@ pub fn time() -> DateTime<Utc> {
 
 pub fn schema_version() -> String {
     String::from("1")
+}
+
+pub fn trace_key() -> String {
+    String::from("traceKey")
+}
+
+pub fn unique_trace_key() -> String {
+    format!("uniqueTraceKey{}", identity::random(36))
+}
+
+pub fn trace_value() -> String {
+    String::from("traceValue")
+}
+
+pub fn unique_trace_value() -> String {
+    format!("uniqueTraceValue{}", identity::random(36))
 }

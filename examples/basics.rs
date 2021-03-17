@@ -113,7 +113,7 @@ impl Account {
 //
 // impl Handler {
 //     #[handler(Deposit)]
-//     fn handle_deposit(&self, deposit: Message<Deposit>) {
+//     fn ohandle_deposit(&self, depsit: Message<Deposit>) {
 //         let account_id = deposit.account_id;
 //
 //         let time = self.iso8601();

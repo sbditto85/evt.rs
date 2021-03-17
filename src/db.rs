@@ -18,7 +18,7 @@ pub fn connect(config: &str) -> Client {
 }
 
 pub fn read_configuration() -> String {
-    std::env::var(CONFIG_ENV).unwrap_or_else(|_| String::from(MISSING))
+    std::env::var(CONFIG_ENV).expect(MISSING)
 }
 
 #[cfg(test)]

@@ -3,6 +3,8 @@ use crate::stream_name;
 use crate::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use std::collections::HashMap;
+
 #[derive(Serialize, Deserialize, Default, Debug)]
 #[serde(default)]
 pub struct Metadata {
@@ -28,6 +30,8 @@ pub struct Metadata {
     pub time: Option<DateTime<Utc>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub schema_version: Option<String>,
+    #[serde(flatten)]
+    pub trace_info: HashMap<String, String>,
 }
 
 impl Metadata {
@@ -37,6 +41,7 @@ impl Metadata {
             causation_message_position: other.causation_message_position,
             causation_message_global_position: other.causation_message_global_position,
             reply_stream_name: other.reply_stream_name.clone(),
+            trace_info: other.trace_info.clone(),
             ..Default::default()
         }
     }
@@ -60,6 +65,10 @@ impl Metadata {
         let correlation_stream_name = self.correlation_stream_name.as_ref().unwrap();
 
         stream_name::get_category(correlation_stream_name) == stream_name::get_category(stream_name)
+    }
+
+    pub fn add_trace(&mut self, key: String, value: String) {
+        self.trace_info.insert(key, value);
     }
 }
 
@@ -128,6 +137,7 @@ mod tests {
         let causation_message_position = other.causation_message_position;
         let causation_message_global_position = other.causation_message_global_position;
         let reply_stream_name = other.reply_stream_name;
+        let trace_info = other.trace_info;
 
         assert_eq!(
             metadata.causation_message_stream_name,
@@ -142,5 +152,25 @@ mod tests {
             causation_message_global_position
         );
         assert_eq!(metadata.reply_stream_name, reply_stream_name);
+        assert_eq!(metadata.trace_info, trace_info);
+    }
+
+    #[test]
+    fn following_copies_traces() {
+        let mut other = controls::metadata::example();
+        other.add_trace(
+            controls::metadata::trace_key(),
+            controls::metadata::trace_value(),
+        );
+        other.add_trace(
+            controls::metadata::unique_trace_key(),
+            controls::metadata::unique_trace_key(),
+        );
+
+        let metadata = Metadata::follow(&other);
+
+        let trace_info = other.trace_info;
+
+        assert_eq!(metadata.trace_info, trace_info);
     }
 }

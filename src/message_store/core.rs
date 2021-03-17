@@ -1,3 +1,4 @@
+use crate::db;
 use crate::Json;
 use crate::Uuid;
 use crate::{DateTime, Utc};
@@ -29,4 +30,20 @@ pub struct Settings {
 pub struct MessageStore {
     pub settings: Settings,
     pub client: Client,
+}
+
+impl MessageStore {
+    pub fn build() -> Self {
+        MessageStore {
+            settings: Settings::default(),
+            client: db::build(),
+        }
+    }
+
+    pub fn build_with_settings(settings: Settings) -> Self {
+        MessageStore {
+            settings,
+            client: db::build(),
+        }
+    }
 }
