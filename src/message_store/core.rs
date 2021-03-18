@@ -4,6 +4,8 @@ use crate::Uuid;
 use crate::{DateTime, Utc};
 use postgres::Client;
 
+use std::collections::HashMap;
+
 pub const INITIAL: Option<i64> = Some(-1);
 
 #[derive(Default, Clone)]
@@ -30,6 +32,7 @@ pub struct Settings {
 pub struct MessageStore {
     pub settings: Settings,
     pub client: Client,
+    pub(crate) entities: HashMap<String, HashMap<String, (i64, serde_json::Value)>>,
 }
 
 impl MessageStore {
@@ -37,6 +40,7 @@ impl MessageStore {
         MessageStore {
             settings: Settings::default(),
             client: db::build(),
+            entities: HashMap::new(),
         }
     }
 
@@ -44,6 +48,7 @@ impl MessageStore {
         MessageStore {
             settings,
             client: db::build(),
+            entities: HashMap::new(),
         }
     }
 }

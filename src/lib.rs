@@ -11,8 +11,8 @@ pub use message_store::MessageStore;
 pub use crate::clock::Clock;
 
 mod clock;
+pub mod consumer;
 pub mod db;
-pub mod handler;
 pub mod identity;
 pub mod message_store;
 #[macro_use]
