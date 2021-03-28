@@ -184,7 +184,7 @@ mod tests {
     }
 
     #[test]
-    fn put_many_will_put_many_datum_into_stream_storage() {
+    fn put_many_will_put_many_data_into_stream_storage() {
         let mut store = controls::message_store();
         let stream_name = stream_name::controls::unique_example();
 
@@ -192,6 +192,27 @@ mod tests {
 
         let results: Vec<MessageData> = store
             .put(data.iter().collect(), stream_name.as_str(), None)
+            .unwrap();
+
+        assert_eq!(10, results.len());
+
+        for i in 0..results.len() {
+            let result = results.get(i).unwrap();
+
+            assert!(result.id.is_some());
+            assert_eq!(i as i64, result.position.unwrap());
+        }
+    }
+
+    #[test]
+    fn put_many_will_put_many_data_into_stream_storage_with_expected_version() {
+        let mut store = controls::message_store();
+        let stream_name = stream_name::controls::unique_example();
+
+        let data: Vec<MessageData> = (0..10).map(|_| controls::new_example()).collect();
+
+        let results: Vec<MessageData> = store
+            .put(data.iter().collect(), stream_name.as_str(), INITIAL)
             .unwrap();
 
         assert_eq!(10, results.len());

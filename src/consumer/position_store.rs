@@ -6,7 +6,9 @@ const POSITION_TYPE: &'static str = "position";
 
 pub trait PositionStore {
     fn get_last(&mut self) -> Result<Option<i64>, Error>;
+
     fn update(&mut self, position: i64) -> Result<(), Error>;
+
     fn position_stream_name(
         stream_name: &str,
         consumer_identifier: Option<&str>,

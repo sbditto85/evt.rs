@@ -1,5 +1,5 @@
 use crate::consumer::Handler;
-use crate::message_store::{Get, MessageData, MessageStore, Put, WriteMessage};
+use crate::message_store::{Get, MessageData, MessageStore, Put};
 
 #[derive(Default)]
 pub struct Settings {
@@ -12,31 +12,4 @@ pub struct Settings {
     pub poll_interfaval_milliseconds: Option<u64>, // poll_interval_milliseconds
     pub position_update_interval: Option<i64>,     // position_update_interval
     pub identifier: Option<String>,                // identifier
-}
-
-pub struct BasicConsumer<R: Get, W: WriteMessage, H: Handler> {
-    pub(crate) settings: Settings,
-    pub(crate) reader: R,
-    pub(crate) writer: W,
-    pub(crate) handler: H,
-}
-
-impl<R: Get, W: WriteMessage, H: Handler> BasicConsumer<R, W, H> {
-    pub fn build(reader: R, writer: W, handler: H) -> Self {
-        Self {
-            settings: Settings::default(),
-            reader,
-            writer,
-            handler,
-        }
-    }
-
-    pub fn build_with_settings(settings: Settings, reader: R, writer: W, handler: H) -> Self {
-        Self {
-            settings,
-            reader,
-            writer,
-            handler,
-        }
-    }
 }

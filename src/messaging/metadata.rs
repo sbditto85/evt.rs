@@ -30,7 +30,7 @@ pub struct Metadata {
     pub time: Option<DateTime<Utc>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub schema_version: Option<String>,
-    #[serde(flatten)]
+    #[serde(default)]
     pub trace_info: HashMap<String, String>,
 }
 

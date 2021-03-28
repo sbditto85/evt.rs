@@ -26,12 +26,6 @@ where
         M: Serialize + DeserializeOwned + Default,
     {
         let metadata = Metadata::follow(message.metadata());
-        // If T has more attributes that aren't defaulted then M this will fail via panic
-        //   also requires #[serde(default)] or similar while not being obvious
-        //   furthermore if there are attributes that should copy but are different keys this wouldn't work
-        // let from: &M = message;
-        // let from_value = serde_json::to_value(from).unwrap();
-        // let data: T = serde_json::from_value(from_value).unwrap();
         let data = message.follow();
 
         Message(data, None, metadata)
@@ -103,6 +97,7 @@ where
     }
 }
 
+// TODO: Technically if something has the same structure but different message_type this will still work.
 impl<T> TryFrom<MessageData> for Message<T>
 where
     T: Serialize + DeserializeOwned + Default,

@@ -1,7 +1,7 @@
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use crate::message_store::{MessageData, Put};
+use crate::message_store::{MessageData, Put, INITIAL};
 use crate::messaging::Message;
 use crate::{Error, MessageStore};
 
@@ -33,7 +33,7 @@ where
     }
 
     fn write_initial(&mut self, batch: &Message<T>, stream_name: &str) -> Result<(), Error> {
-        self.write(batch, stream_name, Some(-1))
+        self.write(batch, stream_name, INITIAL)
     }
 }
 
@@ -56,6 +56,6 @@ where
     }
 
     fn write_initial(&mut self, batch: Vec<&Message<T>>, stream_name: &str) -> Result<(), Error> {
-        self.write(batch, stream_name, Some(-1))
+        self.write(batch, stream_name, INITIAL)
     }
 }
