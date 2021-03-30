@@ -33,4 +33,10 @@ pub enum Error {
     ExpectedVersion(String),
     #[error("missing field in message data")]
     MissingField,
+    #[error("stream name error")]
+    StreamName,
+    #[error("invalid message type")]
+    MessageType,
+    #[error("consumer error")]
+    ConsumerError,
 }

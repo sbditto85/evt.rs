@@ -5,6 +5,9 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use std::convert::TryFrom;
 
+// TODO: make sure it matches messagedbs default
+const BATCH_SIZE_DEFAULT: i64 = 1000;
+
 pub trait EntityStoreEntity: Serialize + DeserializeOwned + Default + Clone {
     type Projector: EntityBuilder<Self>;
     fn get_projector() -> Self::Projector;
@@ -40,8 +43,13 @@ pub trait EntityStore<T: EntityStoreEntity> {
                 entity_builder.apply(message_data);
             }
 
-            // TODO: make 1000 a const somewhere and make sure it matches messagedbs default
-            if messages_length < self.get_store().settings.batch_size.unwrap_or(1000) as usize {
+            if messages_length
+                < self
+                    .get_store()
+                    .settings
+                    .batch_size
+                    .unwrap_or(BATCH_SIZE_DEFAULT) as usize
+            {
                 break;
             }
         }
@@ -66,6 +74,7 @@ pub trait EntityBuilder<T> {
 }
 
 // Made this up, verify with eventide later
+// Snapshot looks a lot like EntityCache ... maybe we just have "layers" or multiple caches
 pub trait EntitySnapShot {
     fn snapshot(&mut self, category: &str, identity: &str, position: u64, entity: Self);
     fn retrieve(&mut self, category: &str, identity: &str) -> (u64, Self);

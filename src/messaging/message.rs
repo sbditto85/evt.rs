@@ -1,5 +1,6 @@
 use crate::message_store::MessageData;
 use crate::messaging::Metadata;
+use crate::Error;
 use crate::Uuid;
 use core::{fmt, ops};
 use serde::de::DeserializeOwned;
@@ -21,6 +22,10 @@ impl<T> Message<T>
 where
     T: Serialize + DeserializeOwned + Default,
 {
+    pub fn from_t(t: T) -> Self {
+        Self(t, None, Metadata::default())
+    }
+
     pub fn follow<M: Follows<T>>(message: &Message<M>) -> Self
     where
         M: Serialize + DeserializeOwned + Default,
@@ -97,19 +102,27 @@ where
     }
 }
 
-// TODO: Technically if something has the same structure but different message_type this will still work.
-impl<T> TryFrom<MessageData> for Message<T>
+// TODO: make a deriving macro
+pub trait MessageType {
+    fn message_type() -> String;
+}
+
+impl<T: MessageType> TryFrom<MessageData> for Message<T>
 where
     T: Serialize + DeserializeOwned + Default,
 {
-    type Error = serde_json::Error;
+    type Error = Error;
     fn try_from(value: MessageData) -> Result<Self, Self::Error> {
-        let id = value.id;
-        let mut metadata = Metadata::from(&value);
-        metadata.message_type = Some(value.message_type);
-        let val: T = serde_json::from_value(value.data)?;
+        if value.message_type == T::message_type() {
+            let id = value.id;
+            let mut metadata = Metadata::from(&value);
+            metadata.message_type = Some(value.message_type);
+            let val: T = serde_json::from_value(value.data)?;
 
-        Ok(Message(val, id, metadata))
+            Ok(Message(val, id, metadata))
+        } else {
+            Err(Error::MessageType)
+        }
     }
 }
 
@@ -152,7 +165,7 @@ where
 }
 
 fn type_name<T>() -> &'static str {
-    let name = std::any::type_name::<T>();
+    let name = std::any::type_name::<T>(); // TODO: This is not guaranteed to be consistent
     name.split("::").into_iter().last().unwrap_or(name)
 }
 

@@ -1,5 +1,5 @@
 use crate::message_store;
-use crate::messaging::{controls, Follows, Message};
+use crate::messaging::{controls, Follows, Message, MessageType};
 use crate::Json;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -67,12 +67,24 @@ pub struct Command {
     pub field2: String,
 }
 
+impl MessageType for Command {
+    fn message_type() -> String {
+        String::from("Command")
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(default)]
 pub struct Event {
     pub field1: String,
     pub field2: String,
     pub field3: String,
+}
+
+impl MessageType for Event {
+    fn message_type() -> String {
+        String::from("Event")
+    }
 }
 
 impl Follows<Event> for Command {
